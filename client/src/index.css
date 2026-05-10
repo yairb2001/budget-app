@@ -1,0 +1,75 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+* {
+  box-sizing: border-box;
+}
+
+body {
+  font-family: 'Assistant', sans-serif;
+  background: #F8F7FF;
+  direction: rtl;
+  min-height: 100dvh;
+  overscroll-behavior: none;
+}
+
+#root {
+  min-height: 100dvh;
+  display: flex;
+  flex-direction: column;
+}
+
+/* Smooth scrolling */
+html {
+  scroll-behavior: smooth;
+}
+
+/* Custom scrollbar */
+::-webkit-scrollbar {
+  width: 4px;
+}
+::-webkit-scrollbar-track {
+  background: transparent;
+}
+::-webkit-scrollbar-thumb {
+  background: #6C63FF44;
+  border-radius: 9999px;
+}
+
+/* Progress bar animation */
+@keyframes fillBar {
+  from { width: 0%; }
+}
+
+.progress-fill {
+  animation: fillBar 0.8s ease-out forwards;
+}
+
+/* Achievement unlock */
+@keyframes achievementPop {
+  0% { transform: scale(0) rotate(-10deg); opacity: 0; }
+  70% { transform: scale(1.1) rotate(2deg); opacity: 1; }
+  100% { transform: scale(1) rotate(0deg); opacity: 1; }
+}
+
+.achievement-pop {
+  animation: achievementPop 0.5s cubic-bezier(0.175, 0.885, 0.32, 1.275) forwards;
+}
+
+/* Coin drop animation */
+@keyframes coinDrop {
+  0% { transform: translateY(-20px) scale(0); opacity: 1; }
+  80% { transform: translateY(0px) scale(1.1); opacity: 1; }
+  100% { transform: translateY(0px) scale(1); opacity: 0; }
+}
+
+.coin-drop {
+  animation: coinDrop 0.8s ease-out forwards;
+}
+
+/* Confetti */
+@keyframes confettiFall {
+  0% { transform: translateY(-10px) rotate(0deg); opacity: 1; }
+  100% { transform: translateY(100vh) rotate(720deg); opacity: 0; }
+}
