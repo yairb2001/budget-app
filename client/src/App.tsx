@@ -5,6 +5,7 @@ import Dashboard from './pages/Dashboard';
 import BudgetsPage from './pages/BudgetsPage';
 import ExpensesPage from './pages/ExpensesPage';
 import AchievementsPage from './pages/AchievementsPage';
+import OverviewPage from './pages/OverviewPage';
 import LoginPage from './pages/LoginPage';
 
 function AppRoutes() {
@@ -19,6 +20,7 @@ function AppRoutes() {
         <Route path="/budgets" element={<BudgetsPage />} />
         <Route path="/expenses" element={<ExpensesPage />} />
         <Route path="/achievements" element={<AchievementsPage />} />
+        <Route path="/overview" element={<OverviewPage />} />
         <Route path="*" element={<Navigate to="/" replace />} />
       </Routes>
       <BottomNav />

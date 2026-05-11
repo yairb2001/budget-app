@@ -27,22 +27,15 @@ function load<T>(key: string, fallback: T): T {
 function save(key: string, val: unknown) { localStorage.setItem(key, JSON.stringify(val)); }
 function nextId(items: { id: number }[]) { return items.length ? Math.max(...items.map(i => i.id)) + 1 : 1; }
 
+function pastMonthYear(offsetMonths: number): { month: number; year: number } {
+  let m = MONTH - offsetMonths;
+  let y = YEAR;
+  while (m <= 0) { m += 12; y -= 1; }
+  return { month: m, year: y };
+}
+
 function seedIfNeeded() {
-  if (localStorage.getItem('mock_seeded_v2')) return;
-
-  const budgets = [
-    { id: 1, category: 'מזון וסופר', amount: 3000, month: MONTH, year: YEAR },
-    { id: 2, category: 'תחבורה', amount: 1200, month: MONTH, year: YEAR },
-    { id: 3, category: 'בילויים', amount: 800, month: MONTH, year: YEAR },
-    { id: 4, category: 'חשבונות קבועים', amount: 6000, month: MONTH, year: YEAR },
-  ];
-
-  const d = (daysAgo: number, dayOfMonth?: number) => {
-    if (dayOfMonth !== undefined) {
-      return new Date(YEAR, MONTH - 1, dayOfMonth).toISOString();
-    }
-    const dt = new Date(); dt.setDate(dt.getDate() - daysAgo); return dt.toISOString();
-  };
+  if (localStorage.getItem('mock_seeded_v3')) return;
 
   const recurringTemplates = [
     { id: 1, category: 'חשבונות קבועים', amount: 4200, description: 'שכר דירה', paymentMethod: 'bank', dayOfMonth: 1, active: true },
@@ -52,6 +45,20 @@ function seedIfNeeded() {
     { id: 5, category: 'חשבונות קבועים', amount: 180, description: 'נטפליקס + ספוטיפיי', paymentMethod: 'credit', dayOfMonth: 8, active: true },
   ];
   save('mock_recurring', recurringTemplates);
+
+  const d = (daysAgo: number, dayOfMonth?: number) => {
+    if (dayOfMonth !== undefined) {
+      return new Date(YEAR, MONTH - 1, dayOfMonth).toISOString();
+    }
+    const dt = new Date(); dt.setDate(dt.getDate() - daysAgo); return dt.toISOString();
+  };
+
+  const budgets: any[] = [
+    { id: 1, category: 'מזון וסופר', amount: 3000, month: MONTH, year: YEAR },
+    { id: 2, category: 'תחבורה', amount: 1200, month: MONTH, year: YEAR },
+    { id: 3, category: 'בילויים', amount: 800, month: MONTH, year: YEAR },
+    { id: 4, category: 'חשבונות קבועים', amount: 6000, month: MONTH, year: YEAR },
+  ];
 
   const expenses: any[] = [
     { id: 1, userId: 1, category: 'מזון וסופר', amount: 480, description: 'שופרסל', paymentMethod: 'credit', date: d(1), user: USERS[0], isRecurring: false },
@@ -63,10 +70,10 @@ function seedIfNeeded() {
   ];
 
   // Auto-apply recurring to current month
-  let maxId = 10;
+  let expId = 20;
   recurringTemplates.forEach(r => {
     expenses.push({
-      id: ++maxId,
+      id: ++expId,
       userId: 1,
       category: r.category,
       amount: r.amount,
@@ -76,6 +83,50 @@ function seedIfNeeded() {
       user: USERS[0],
       isRecurring: true,
       recurringId: r.id,
+    });
+  });
+
+  // Historical data for past 5 months
+  const pastMonthsConfig = [
+    { off: 1, food: 2400, trans: 570, ent: 600 },  // good month
+    { off: 2, food: 3250, trans: 720, ent: 790 },  // food over budget
+    { off: 3, food: 2050, trans: 500, ent: 380 },  // great month
+    { off: 4, food: 2800, trans: 620, ent: 640 },  // normal
+    { off: 5, food: 2950, trans: 770, ent: 720 },  // normal
+  ];
+
+  let budId = 10;
+  pastMonthsConfig.forEach(({ off, food, trans, ent }) => {
+    const { month: pm, year: py } = pastMonthYear(off);
+    const daysInMonth = new Date(py, pm, 0).getDate();
+
+    budgets.push(
+      { id: ++budId, category: 'מזון וסופר', amount: 3000, month: pm, year: py },
+      { id: ++budId, category: 'תחבורה', amount: 1200, month: pm, year: py },
+      { id: ++budId, category: 'בילויים', amount: 800, month: pm, year: py },
+      { id: ++budId, category: 'חשבונות קבועים', amount: 6000, month: pm, year: py },
+    );
+
+    expenses.push(
+      { id: ++expId, userId: 1, category: 'מזון וסופר', amount: Math.round(food * 0.55), description: 'קניות שבועיות', paymentMethod: 'credit', date: new Date(py, pm - 1, 8).toISOString(), user: USERS[0], isRecurring: false },
+      { id: ++expId, userId: 2, category: 'מזון וסופר', amount: Math.round(food * 0.45), description: 'סופרמרקט', paymentMethod: 'cash', date: new Date(py, pm - 1, 20).toISOString(), user: USERS[1], isRecurring: false },
+      { id: ++expId, userId: 1, category: 'תחבורה', amount: trans, description: 'דלק', paymentMethod: 'credit', date: new Date(py, pm - 1, 14).toISOString(), user: USERS[0], isRecurring: false },
+      { id: ++expId, userId: 2, category: 'בילויים', amount: ent, description: 'בילויים', paymentMethod: 'bit', date: new Date(py, pm - 1, 18).toISOString(), user: USERS[1], isRecurring: false },
+    );
+
+    recurringTemplates.forEach(r => {
+      expenses.push({
+        id: ++expId,
+        userId: 1,
+        category: r.category,
+        amount: r.amount,
+        description: r.description,
+        paymentMethod: r.paymentMethod,
+        date: new Date(py, pm - 1, Math.min(r.dayOfMonth, daysInMonth)).toISOString(),
+        user: USERS[0],
+        isRecurring: true,
+        recurringId: r.id,
+      });
     });
   });
 
@@ -91,7 +142,7 @@ function seedIfNeeded() {
     { userId: 2, achievementKey: 'couple_power', unlockedAt: d(3) },
   ];
   save('mock_user_achievements', userAchievements);
-  save('mock_seeded_v2', true);
+  save('mock_seeded_v3', true);
 }
 
 function getExpensesRaw() { return load<any[]>('mock_expenses', []); }
@@ -197,6 +248,7 @@ export const mockApi = {
   },
 
   getStats: async (month: number, year: number) => {
+    seedIfNeeded();
     ensureRecurringApplied(month, year);
     const expenses = getExpensesRaw().filter((e: any) => {
       const d = new Date(e.date);
@@ -301,6 +353,32 @@ export const mockApi = {
   deleteRecurring: async (id: number) => {
     save('mock_recurring', getRecurringRaw().filter((r: any) => r.id !== id));
     return { ok: true };
+  },
+
+  // ── Year Stats ────────────────────────────────────────────────────────
+
+  getYearStats: async (year: number) => {
+    seedIfNeeded();
+    const allExpenses = getExpensesRaw();
+    const allBudgets = getBudgetsRaw();
+    return Array.from({ length: 12 }, (_, i) => {
+      const month = i + 1;
+      const monthExpenses = allExpenses.filter((e: any) => {
+        const d = new Date(e.date);
+        return d.getMonth() + 1 === month && d.getFullYear() === year;
+      });
+      const monthBudgets = allBudgets.filter((b: any) => b.month === month && b.year === year);
+      const totalSpent = monthExpenses.reduce((s: number, e: any) => s + e.amount, 0);
+      const totalBudget = monthBudgets.reduce((s: number, b: any) => s + b.amount, 0);
+      return {
+        month,
+        year,
+        totalSpent,
+        totalBudget,
+        totalSaved: Math.max(0, totalBudget - totalSpent),
+        hasData: monthBudgets.length > 0 || monthExpenses.length > 0,
+      };
+    });
   },
 
   // ── Achievements ──────────────────────────────────────────────────────

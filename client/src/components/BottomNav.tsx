@@ -6,6 +6,7 @@ const TABS = [
   { to: '/budgets', icon: '📋', label: 'תקציב' },
   { to: '/expenses', icon: '📊', label: 'הוצאות' },
   { to: '/achievements', icon: '🏆', label: 'הישגים' },
+  { to: '/overview', icon: '📈', label: 'סקירה' },
 ];
 
 export default function BottomNav() {

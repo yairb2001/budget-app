@@ -18,7 +18,20 @@ interface Stats {
 }
 
 export default function Dashboard() {
-  const { user, currentMonth, currentYear, refreshKey } = useApp();
+  const { user, currentMonth, currentYear, setMonth, refreshKey } = useApp();
+
+  const now = new Date();
+  const isCurrentMonth = currentMonth === now.getMonth() + 1 && currentYear === now.getFullYear();
+
+  function prevMonth() {
+    if (currentMonth === 1) setMonth(12, currentYear - 1);
+    else setMonth(currentMonth - 1, currentYear);
+  }
+  function nextMonth() {
+    if (isCurrentMonth) return;
+    if (currentMonth === 12) setMonth(1, currentYear + 1);
+    else setMonth(currentMonth + 1, currentYear);
+  }
   const [stats, setStats] = useState<Stats | null>(null);
   const [loading, setLoading] = useState(true);
   const [showModal, setShowModal] = useState(false);
@@ -78,13 +91,28 @@ export default function Dashboard() {
         style={{ background: 'linear-gradient(135deg, #6C63FF 0%, #AB47BC 100%)' }}
       >
         <div className="flex items-center justify-between mb-4">
-          <div>
+          <div className="flex-1">
             <p className="text-white/80 text-sm">שלום, {user?.name}! 👋</p>
-            <h1 className="text-2xl font-black">{MONTH_NAMES[currentMonth]} {currentYear}</h1>
+            <div className="flex items-center gap-2 mt-0.5">
+              <button
+                onClick={prevMonth}
+                className="w-7 h-7 rounded-full bg-white/20 active:bg-white/40 flex items-center justify-center text-white text-lg leading-none"
+              >
+                ‹
+              </button>
+              <h1 className="text-xl font-black">{MONTH_NAMES[currentMonth]} {currentYear}</h1>
+              <button
+                onClick={nextMonth}
+                disabled={isCurrentMonth}
+                className="w-7 h-7 rounded-full bg-white/20 active:bg-white/40 flex items-center justify-center text-white text-lg leading-none disabled:opacity-30"
+              >
+                ›
+              </button>
+            </div>
             <p className="text-white/70 text-xs mt-0.5">{greeting}</p>
           </div>
           <div
-            className="w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold shadow-lg"
+            className="w-12 h-12 rounded-full flex items-center justify-center text-xl font-bold shadow-lg flex-shrink-0"
             style={{ background: user?.color || '#fff', color: 'white' }}
           >
             {user?.name?.[0]}

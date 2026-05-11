@@ -46,6 +46,8 @@ const realApi = {
 
   deleteExpense: (id: number) => request(`/expenses/${id}`, { method: 'DELETE' }),
 
+  getYearStats: (year: number) => request<any[]>(`/stats/yearly?year=${year}`),
+
   getAchievements: () => request<any[]>('/achievements'),
   getMyAchievements: () => request<any[]>('/achievements/mine'),
 
