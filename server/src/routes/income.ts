@@ -1,7 +1,6 @@
 import { Router, Response } from 'express';
 import { PrismaClient } from '@prisma/client';
 import { AuthRequest } from '../middleware/authMiddleware';
-import { checkAchievements } from '../services/achievementService';
 
 const router = Router();
 const prisma = new PrismaClient();
@@ -14,7 +13,7 @@ router.get('/', async (req: AuthRequest, res: Response): Promise<void> => {
   const start = new Date(year, month - 1, 1);
   const end = new Date(year, month, 0, 23, 59, 59);
 
-  const expenses = await prisma.expense.findMany({
+  const items = await prisma.income.findMany({
     where: {
       date: { gte: start, lte: end },
       ...(category ? { category } : {}),
@@ -22,33 +21,32 @@ router.get('/', async (req: AuthRequest, res: Response): Promise<void> => {
     include: { user: { select: { id: true, name: true, color: true } } },
     orderBy: { date: 'desc' },
   });
-  res.json(expenses);
+  res.json(items);
 });
 
 router.post('/', async (req: AuthRequest, res: Response): Promise<void> => {
-  const { category, amount, description, date } = req.body;
-  const expense = await prisma.expense.create({
+  const { category, amount, description, paymentMethod, date } = req.body;
+  const item = await prisma.income.create({
     data: {
       userId: req.userId!,
       category,
       amount: parseFloat(amount),
       description,
+      paymentMethod: paymentMethod || 'cash',
       date: date ? new Date(date) : new Date(),
     },
     include: { user: { select: { id: true, name: true, color: true } } },
   });
-
-  const newAchievements = await checkAchievements(req.userId!);
-  res.json({ expense, newAchievements });
+  res.json(item);
 });
 
 router.delete('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
-  const expense = await prisma.expense.findUnique({ where: { id: parseInt(req.params.id as string) } });
-  if (!expense || expense.userId !== req.userId) {
+  const item = await prisma.income.findUnique({ where: { id: parseInt(req.params.id as string) } });
+  if (!item || item.userId !== req.userId) {
     res.status(403).json({ error: 'אין הרשאה' });
     return;
   }
-  await prisma.expense.delete({ where: { id: parseInt(req.params.id as string) } });
+  await prisma.income.delete({ where: { id: parseInt(req.params.id as string) } });
   res.json({ ok: true });
 });
 

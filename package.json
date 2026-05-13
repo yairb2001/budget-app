@@ -4,7 +4,7 @@
   "private": true,
   "scripts": {
     "build": "npm ci --prefix server && npm ci --prefix client && npm run build --prefix client && npm run build --prefix server",
-    "start": "node server/dist/index.js",
+    "start": "cd server && npx prisma db push --accept-data-loss && cd .. && node server/dist/index.js",
     "dev": "concurrently \"npm run dev --prefix server\" \"npm run dev --prefix client\"",
     "seed": "cd server && npx ts-node prisma/seed.ts"
   },

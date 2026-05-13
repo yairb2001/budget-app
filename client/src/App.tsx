@@ -4,6 +4,7 @@ import BottomNav from './components/BottomNav';
 import Dashboard from './pages/Dashboard';
 import BudgetsPage from './pages/BudgetsPage';
 import ExpensesPage from './pages/ExpensesPage';
+import IncomePage from './pages/IncomePage';
 import AchievementsPage from './pages/AchievementsPage';
 import OverviewPage from './pages/OverviewPage';
 import LoginPage from './pages/LoginPage';
@@ -16,12 +17,14 @@ function AppRoutes() {
   return (
     <div className="relative min-h-screen bg-gray-50">
       <Routes>
-        <Route path="/" element={<Dashboard />} />
-        <Route path="/budgets" element={<BudgetsPage />} />
-        <Route path="/expenses" element={<ExpensesPage />} />
+        <Route path="/"            element={<Dashboard />} />
+        <Route path="/income"      element={<IncomePage />} />
+        <Route path="/expenses"    element={<ExpensesPage />} />
+        <Route path="/settings"    element={<BudgetsPage />} />
+        <Route path="/budgets"     element={<Navigate to="/settings" replace />} />
         <Route path="/achievements" element={<AchievementsPage />} />
-        <Route path="/overview" element={<OverviewPage />} />
-        <Route path="*" element={<Navigate to="/" replace />} />
+        <Route path="/overview"    element={<OverviewPage />} />
+        <Route path="*"            element={<Navigate to="/" replace />} />
       </Routes>
       <BottomNav />
     </div>

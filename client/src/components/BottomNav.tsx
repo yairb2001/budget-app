@@ -2,11 +2,11 @@ import { NavLink } from 'react-router-dom';
 import { motion } from 'framer-motion';
 
 const TABS = [
-  { to: '/', icon: '🏠', label: 'ראשי' },
-  { to: '/budgets', icon: '📋', label: 'תקציב' },
-  { to: '/expenses', icon: '📊', label: 'הוצאות' },
-  { to: '/achievements', icon: '🏆', label: 'הישגים' },
-  { to: '/overview', icon: '📈', label: 'סקירה' },
+  { to: '/',            icon: '🏠', label: 'ראשי' },
+  { to: '/income',      icon: '💰', label: 'הכנסות' },
+  { to: '/expenses',    icon: '📊', label: 'הוצאות' },
+  { to: '/settings',    icon: '⚙️', label: 'הגדרות' },
+  { to: '/overview',    icon: '📈', label: 'סקירה' },
 ];
 
 export default function BottomNav() {

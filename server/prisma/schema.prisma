@@ -13,6 +13,7 @@ model User {
   passwordHash String
   color        String            @default("#6C63FF")
   expenses     Expense[]
+  income       Income[]
   achievements UserAchievement[]
   createdAt    DateTime          @default(now())
 }
@@ -68,4 +69,28 @@ model UserAchievement {
   achievement   Achievement @relation(fields: [achievementId], references: [id])
 
   @@id([userId, achievementId])
+}
+
+model Income {
+  id            Int      @id @default(autoincrement())
+  userId        Int
+  user          User     @relation(fields: [userId], references: [id])
+  category      String
+  amount        Float
+  description   String?
+  paymentMethod String   @default("cash")
+  date          DateTime @default(now())
+  createdAt     DateTime @default(now())
+}
+
+model CategoryConfig {
+  id    Int    @id @default(autoincrement())
+  type  String // "expense" | "income"
+  key   String
+  icon  String
+  color String
+  bg    String
+  label String
+
+  @@unique([type, key])
 }

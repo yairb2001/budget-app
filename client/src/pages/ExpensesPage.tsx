@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../api/client';
-import { getCategoryInfo, getPaymentMethod, formatCurrency, MONTH_NAMES, CATEGORIES } from '../theme';
+import { getCategoryInfo, getPaymentMethod, formatCurrency, MONTH_NAMES, getStoredExpenseCategories } from '../theme';
 import { useApp } from '../context/AppContext';
 import ExpenseModal from '../components/ExpenseModal';
 import AchievementPopup from '../components/Confetti';
@@ -17,7 +17,12 @@ interface Expense {
 }
 
 export default function ExpensesPage() {
-  const { currentMonth, currentYear, refreshKey, triggerRefresh } = useApp();
+  const { currentMonth, currentYear, setMonth, refreshKey, triggerRefresh } = useApp();
+  const cats = getStoredExpenseCategories();
+  const now = new Date();
+  const isCurrentMonth = currentMonth === now.getMonth() + 1 && currentYear === now.getFullYear();
+  function prevMonth() { if (currentMonth === 1) setMonth(12, currentYear - 1); else setMonth(currentMonth - 1, currentYear); }
+  function nextMonth() { if (isCurrentMonth) return; if (currentMonth === 12) setMonth(1, currentYear + 1); else setMonth(currentMonth + 1, currentYear); }
   const [expenses, setExpenses] = useState<Expense[]>([]);
   const [loading, setLoading] = useState(true);
   const [filterCat, setFilterCat] = useState<string | null>(null);
@@ -59,14 +64,12 @@ export default function ExpensesPage() {
       <AchievementPopup achievement={pendingAch} onDone={() => setPendingAch(null)} />
 
       {/* Header */}
-      <div
-        className="px-5 pt-12 pb-6 text-white"
-        style={{ background: 'linear-gradient(135deg, #AB47BC 0%, #6C63FF 100%)' }}
-      >
-        <h1 className="text-2xl font-black">הוצאות 📊</h1>
-        <p className="text-white/70 text-sm mt-1">
-          {MONTH_NAMES[currentMonth]} {currentYear}
-        </p>
+      <div className="px-5 pt-12 pb-6 text-white" style={{ background: 'linear-gradient(135deg, #FF7043 0%, #AB47BC 100%)' }}>
+        <div className="flex items-center gap-2 mb-1">
+          <button onClick={prevMonth} className="w-7 h-7 rounded-full bg-white/20 active:bg-white/40 flex items-center justify-center text-white text-lg leading-none">‹</button>
+          <h1 className="text-xl font-black">הוצאות {MONTH_NAMES[currentMonth]} {currentYear}</h1>
+          <button onClick={nextMonth} disabled={isCurrentMonth} className="w-7 h-7 rounded-full bg-white/20 active:bg-white/40 flex items-center justify-center text-white text-lg leading-none disabled:opacity-30">›</button>
+        </div>
         <div className="bg-white/20 backdrop-blur rounded-2xl p-3 mt-4 text-center">
           <p className="text-white/70 text-xs">סה"כ הוצאות</p>
           <p className="text-2xl font-black">{formatCurrency(total)}</p>
@@ -84,7 +87,7 @@ export default function ExpensesPage() {
           >
             הכל
           </button>
-          {CATEGORIES.map((cat) => (
+          {cats.map((cat) => (
             <button
               key={cat.key}
               onClick={() => setFilterCat(filterCat === cat.key ? null : cat.key)}

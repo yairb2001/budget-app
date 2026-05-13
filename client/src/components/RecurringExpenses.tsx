@@ -1,7 +1,7 @@
 import { useState, useEffect } from 'react';
 import { motion, AnimatePresence } from 'framer-motion';
 import { api } from '../api/client';
-import { CATEGORIES, PAYMENT_METHODS, getCategoryInfo, getPaymentMethod, formatCurrency } from '../theme';
+import { getStoredExpenseCategories, PAYMENT_METHODS, getCategoryInfo, getPaymentMethod, formatCurrency } from '../theme';
 import { useApp } from '../context/AppContext';
 
 interface RecurringItem {
@@ -18,8 +18,9 @@ export default function RecurringExpenses() {
   const { triggerRefresh } = useApp();
   const [items, setItems] = useState<RecurringItem[]>([]);
   const [showForm, setShowForm] = useState(false);
+  const expCats = getStoredExpenseCategories();
   const [form, setForm] = useState({
-    category: CATEGORIES[0].key,
+    category: expCats[0]?.key ?? '',
     amount: '',
     description: '',
     paymentMethod: 'bank',
@@ -44,7 +45,7 @@ export default function RecurringExpenses() {
       dayOfMonth: parseInt(form.dayOfMonth) || 1,
     });
     setItems((prev) => [...prev, item]);
-    setForm({ category: CATEGORIES[0].key, amount: '', description: '', paymentMethod: 'bank', dayOfMonth: '1' });
+    setForm({ category: expCats[0]?.key ?? '', amount: '', description: '', paymentMethod: 'bank', dayOfMonth: '1' });
     setShowForm(false);
     triggerRefresh();
   }
@@ -183,7 +184,7 @@ export default function RecurringExpenses() {
 
               {/* Category */}
               <div className="grid grid-cols-4 gap-2 mb-4">
-                {CATEGORIES.map((cat) => (
+                {expCats.map((cat) => (
                   <button
                     key={cat.key}
                     onClick={() => setForm(f => ({ ...f, category: cat.key }))}

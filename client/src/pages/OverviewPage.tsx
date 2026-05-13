@@ -12,10 +12,14 @@ import { useNavigate } from 'react-router-dom';
 interface MonthStat {
   month: number;
   year: number;
-  totalSpent: number;
+  totalExpenses: number;
+  totalIncome: number;
+  netProfit: number;
   totalBudget: number;
-  totalSaved: number;
   hasData: boolean;
+  // backward compat
+  totalSpent?: number;
+  totalSaved?: number;
 }
 
 const SHORT_MONTHS = ['', 'ינו', 'פבר', 'מרץ', 'אפר', 'מאי', 'יוני', 'יולי', 'אוג', 'ספט', 'אוק', 'נוב', 'דצמ'];
@@ -36,17 +40,18 @@ export default function OverviewPage() {
   }, [year]);
 
   const activeMonths = data.filter(m => m.hasData);
-  const totalSavedYear = activeMonths.reduce((s, m) => s + m.totalSaved, 0);
-  const totalSpentYear = activeMonths.reduce((s, m) => s + m.totalSpent, 0);
-  const greenMonths = activeMonths.filter(m => m.totalBudget > 0 && m.totalSpent <= m.totalBudget).length;
+  const totalIncomeYear   = activeMonths.reduce((s, m) => s + (m.totalIncome ?? 0), 0);
+  const totalExpensesYear = activeMonths.reduce((s, m) => s + (m.totalExpenses ?? m.totalSpent ?? 0), 0);
+  const netProfitYear     = totalIncomeYear - totalExpensesYear;
+  const profitableMonths  = activeMonths.filter(m => (m.netProfit ?? 0) >= 0).length;
 
   const chartData = data
     .filter(m => m.hasData)
     .map(m => ({
       name: SHORT_MONTHS[m.month],
       month: m.month,
-      spent: Math.round(m.totalSpent),
-      budget: Math.round(m.totalBudget),
+      income: Math.round(m.totalIncome ?? 0),
+      expenses: Math.round(m.totalExpenses ?? m.totalSpent ?? 0),
     }));
 
   function goToMonth(m: MonthStat) {
@@ -86,17 +91,17 @@ export default function OverviewPage() {
         </div>
 
         <div className="grid grid-cols-3 gap-2">
-          <div className="bg-white/20 backdrop-blur rounded-2xl p-3 text-center">
-            <p className="text-white/70 text-[10px]">סה"כ הוצאות</p>
-            <p className="text-base font-black">{formatCurrency(totalSpentYear)}</p>
+          <div className="bg-green-500/20 backdrop-blur rounded-2xl p-3 text-center">
+            <p className="text-white/70 text-[10px]">הכנסות</p>
+            <p className="text-base font-black text-green-200">{formatCurrency(totalIncomeYear)}</p>
           </div>
-          <div className="bg-white/20 backdrop-blur rounded-2xl p-3 text-center">
-            <p className="text-white/70 text-[10px]">חסכנו</p>
-            <p className="text-base font-black">{formatCurrency(totalSavedYear)}</p>
+          <div className="bg-red-500/20 backdrop-blur rounded-2xl p-3 text-center">
+            <p className="text-white/70 text-[10px]">הוצאות</p>
+            <p className="text-base font-black text-red-200">{formatCurrency(totalExpensesYear)}</p>
           </div>
-          <div className="bg-white/20 backdrop-blur rounded-2xl p-3 text-center">
-            <p className="text-white/70 text-[10px]">חודשים ירוקים</p>
-            <p className="text-base font-black">{greenMonths}/{activeMonths.length}</p>
+          <div className={`backdrop-blur rounded-2xl p-3 text-center ${netProfitYear >= 0 ? 'bg-blue-500/20' : 'bg-red-600/20'}`}>
+            <p className="text-white/70 text-[10px]">רווח שנתי</p>
+            <p className={`text-base font-black ${netProfitYear >= 0 ? 'text-blue-200' : 'text-red-300'}`}>{netProfitYear >= 0 ? '' : '-'}{formatCurrency(Math.abs(netProfitYear))}</p>
           </div>
         </div>
       </div>
@@ -132,17 +137,17 @@ export default function OverviewPage() {
                   formatter={(val: number, name: string) => [formatCurrency(val), name === 'budget' ? 'תקציב' : 'הוצאות']}
                   contentStyle={{ borderRadius: 12, border: 'none', boxShadow: '0 4px 12px rgba(0,0,0,0.1)' }}
                 />
-                <Bar dataKey="budget" name="תקציב" fill="#E8E5FF" radius={[6, 6, 0, 0]} />
-                <Bar dataKey="spent" name="הוצאות" fill="#6C63FF" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="income"   name="הכנסות" fill="#4CAF50" radius={[6, 6, 0, 0]} />
+                <Bar dataKey="expenses" name="הוצאות" fill="#FF7043" radius={[6, 6, 0, 0]} />
               </BarChart>
             </ResponsiveContainer>
             </div>
             <div className="flex justify-center gap-4 mt-1">
               <span className="flex items-center gap-1.5 text-xs text-gray-500">
-                <span className="w-3 h-3 rounded-sm bg-[#E8E5FF] inline-block" />תקציב
+                <span className="w-3 h-3 rounded-sm bg-[#4CAF50] inline-block" />הכנסות
               </span>
               <span className="flex items-center gap-1.5 text-xs text-gray-500">
-                <span className="w-3 h-3 rounded-sm bg-[#6C63FF] inline-block" />הוצאות
+                <span className="w-3 h-3 rounded-sm bg-[#FF7043] inline-block" />הוצאות
               </span>
             </div>
           </motion.div>
@@ -161,9 +166,8 @@ export default function OverviewPage() {
             </div>
             <div className="divide-y divide-gray-50">
               {[...activeMonths].reverse().map((m) => {
-                const pct = m.totalBudget > 0 ? m.totalSpent / m.totalBudget : 0;
-                const isGreen = m.totalBudget > 0 && pct <= 1;
-                const diff = Math.abs(m.totalSpent - m.totalBudget);
+                const isGreen = (m.netProfit ?? 0) >= 0;
+                const profit = m.netProfit ?? (m.totalIncome ?? 0) - (m.totalExpenses ?? m.totalSpent ?? 0);
                 return (
                   <button
                     key={`${m.year}-${m.month}`}
@@ -173,18 +177,13 @@ export default function OverviewPage() {
                     <span className="text-xl flex-shrink-0">{isGreen ? '🌿' : '⚠️'}</span>
                     <div className="flex-1 min-w-0">
                       <p className="text-sm font-bold text-gray-800">{MONTH_NAMES[m.month]} {m.year}</p>
-                      <div className="mt-1 h-1.5 bg-gray-100 rounded-full overflow-hidden">
-                        <div
-                          className="h-full rounded-full transition-all"
-                          style={{
-                            width: `${Math.min(pct * 100, 100)}%`,
-                            background: isGreen ? '#4CAF50' : '#F44336',
-                          }}
-                        />
+                        <div className="flex gap-2 text-xs text-gray-500 mt-0.5">
+                        <span>🟢 {formatCurrency(m.totalIncome ?? 0)}</span>
+                        <span>🔴 {formatCurrency(m.totalExpenses ?? m.totalSpent ?? 0)}</span>
                       </div>
                     </div>
                     <div className={`text-sm font-bold flex-shrink-0 ${isGreen ? 'text-green-600' : 'text-red-500'}`}>
-                      {isGreen ? `+${formatCurrency(diff)}` : `-${formatCurrency(diff)}`}
+                      {isGreen ? '+' : '-'}{formatCurrency(Math.abs(profit))}
                     </div>
                   </button>
                 );

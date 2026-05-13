@@ -27,6 +27,11 @@ const realApi = {
       method: 'POST', body: JSON.stringify({ name, password }),
     }),
 
+  register: (name: string, password: string, color: string) =>
+    request<{ token: string; user: { id: number; name: string; color: string } }>('/auth/register', {
+      method: 'POST', body: JSON.stringify({ name, password, color }),
+    }),
+
   getStats: (month: number, year: number) =>
     request<any>(`/stats/monthly?month=${month}&year=${year}`),
 
@@ -47,6 +52,16 @@ const realApi = {
   deleteExpense: (id: number) => request(`/expenses/${id}`, { method: 'DELETE' }),
 
   getYearStats: (year: number) => request<any[]>(`/stats/yearly?year=${year}`),
+
+  getIncome: (month: number, year: number, category?: string) =>
+    request<any[]>(`/income?month=${month}&year=${year}${category ? `&category=${category}` : ''}`),
+  addIncome: (data: any) => request<any>('/income', { method: 'POST', body: JSON.stringify(data) }),
+  deleteIncome: (id: number) => request(`/income/${id}`, { method: 'DELETE' }),
+
+  getExpenseCategories: () => request<any[]>('/categories/expenses'),
+  getIncomeCategories:  () => request<any[]>('/categories/income'),
+  saveExpenseCategories: (cats: any[]) => request('/categories/expenses', { method: 'PUT', body: JSON.stringify(cats) }),
+  saveIncomeCategories:  (cats: any[]) => request('/categories/income',   { method: 'PUT', body: JSON.stringify(cats) }),
 
   getAchievements: () => request<any[]>('/achievements'),
   getMyAchievements: () => request<any[]>('/achievements/mine'),

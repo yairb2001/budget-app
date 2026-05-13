@@ -17,6 +17,7 @@ interface Achievement {
 interface AppContextType {
   user: User | null;
   login: (name: string, password: string) => Promise<void>;
+  register: (name: string, password: string, color: string) => Promise<void>;
   logout: () => void;
   currentMonth: number;
   currentYear: number;
@@ -42,6 +43,13 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
 
   const login = useCallback(async (name: string, password: string) => {
     const { token, user } = await api.login(name, password);
+    localStorage.setItem('token', token);
+    localStorage.setItem('user', JSON.stringify(user));
+    setUser(user);
+  }, []);
+
+  const register = useCallback(async (name: string, password: string, color: string) => {
+    const { token, user } = await (api as any).register(name, password, color);
     localStorage.setItem('token', token);
     localStorage.setItem('user', JSON.stringify(user));
     setUser(user);
@@ -75,6 +83,7 @@ export function AppProvider({ children }: { children: React.ReactNode }) {
       value={{
         user,
         login,
+        register,
         logout,
         currentMonth,
         currentYear,

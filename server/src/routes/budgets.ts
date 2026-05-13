@@ -25,14 +25,14 @@ router.post('/', async (req: AuthRequest, res: Response): Promise<void> => {
 router.put('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
   const { amount } = req.body;
   const budget = await prisma.budget.update({
-    where: { id: parseInt(req.params.id) },
+    where: { id: parseInt(req.params.id as string) },
     data: { amount },
   });
   res.json(budget);
 });
 
 router.delete('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
-  await prisma.budget.delete({ where: { id: parseInt(req.params.id) } });
+  await prisma.budget.delete({ where: { id: parseInt(req.params.id as string) } });
   res.json({ ok: true });
 });
 

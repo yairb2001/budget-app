@@ -26,14 +26,14 @@ router.post('/', async (req: AuthRequest, res: Response): Promise<void> => {
 
 router.put('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
   const item = await (prisma as any).recurringExpense.update({
-    where: { id: parseInt(req.params.id) },
+    where: { id: parseInt(req.params.id as string) },
     data: req.body,
   });
   res.json(item);
 });
 
 router.delete('/:id', async (req: AuthRequest, res: Response): Promise<void> => {
-  await (prisma as any).recurringExpense.delete({ where: { id: parseInt(req.params.id) } });
+  await (prisma as any).recurringExpense.delete({ where: { id: parseInt(req.params.id as string) } });
   res.json({ ok: true });
 });
 

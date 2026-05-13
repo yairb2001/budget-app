@@ -10,13 +10,13 @@ async function main() {
   await prisma.user.upsert({
     where: { id: 1 },
     update: {},
-    create: { name: 'יאיר', passwordHash: hash1, color: '#6C63FF' },
+    create: { name: 'יאיר', passwordHash: hash1, color: '#1A1A2E' },
   });
 
   await prisma.user.upsert({
     where: { id: 2 },
     update: {},
-    create: { name: 'אשתי', passwordHash: hash2, color: '#FF6584' },
+    create: { name: 'מנהל', passwordHash: hash2, color: '#78909C' },
   });
 
   const achievements = [
